@@ -1,0 +1,19 @@
+@import "tailwindcss";
+
+@theme {
+  --font-sans: "Inter", "BIZ UDPGothic", ui-sans-serif, system-ui, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, monospace;
+
+  --color-primary: #00A99D;
+  --color-accent: #FF7F50;
+  --color-background: #FFFFFF;
+  --color-surface: #F9F9F9;
+  --color-border: #EFEFEF;
+  --color-base-text: #222222;
+}
+
+@layer base {
+  body {
+    @apply bg-background text-base-text font-sans antialiased;
+  }
+}
