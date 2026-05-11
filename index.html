@@ -34,7 +34,7 @@
         align-items: center;
         justify-content: center;
         height: 100vh;
-        gap: 1.5rem;
+        gap: 2rem;
       }
       .loader-icon {
         width: 64px;
@@ -42,6 +42,17 @@
         background: var(--primary);
         border-radius: 1.25rem;
         box-shadow: 0 10px 15px -3px rgba(0, 169, 157, 0.2);
+        animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+      }
+      @keyframes pulse {
+        0%, 100% { opacity: 1; transform: scale(1); }
+        50% { opacity: .7; transform: scale(0.95); }
+      }
+      .loader-content {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 0.75rem;
       }
       .loader-text {
         font-weight: 800;
@@ -49,13 +60,39 @@
         font-size: 1.25rem;
         letter-spacing: -0.025em;
       }
+      .progress-container {
+        width: 160px;
+        height: 4px;
+        background: #EFEFEF;
+        border-radius: 2px;
+        overflow: hidden;
+        position: relative;
+      }
+      .progress-bar {
+        position: absolute;
+        width: 100%;
+        height: 100%;
+        background: var(--primary);
+        transform-origin: left;
+        animation: progress 3s ease-in-out infinite;
+      }
+      @keyframes progress {
+        0% { transform: scaleX(0); }
+        50% { transform: scaleX(0.7); }
+        100% { transform: scaleX(1); }
+      }
     </style>
   </head>
   <body>
     <div id="root">
       <div id="root-loader">
         <div class="loader-icon"></div>
-        <div class="loader-text">作業メモ電卓</div>
+        <div class="loader-content">
+          <div class="loader-text">作業メモ電卓</div>
+          <div class="progress-container">
+            <div class="progress-bar"></div>
+          </div>
+        </div>
       </div>
     </div>
     <script type="module" src="/src/main.jsx"></script>
