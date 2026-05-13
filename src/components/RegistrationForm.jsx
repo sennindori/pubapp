@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Calendar, Tag, Hash, Clock, Plus, CheckCircle2, X, Delete, Play, Square, RotateCcw, Timer, Minus, Equal } from 'lucide-react';
+import { Calendar, Tag, Hash, Clock, Plus, CheckCircle2, Delete, Play, Square, RotateCcw, Timer } from 'lucide-react';
 import { KeypadButton } from './KeypadButton';
 
 export function RegistrationForm({
@@ -136,7 +136,7 @@ export function RegistrationForm({
               onClick={() => onKeypadPress('+')} 
               className="bg-slate-50 text-primary border-primary/10 hover:border-primary/30"
             >
-              <Plus className="w-5 h-5" />
+              <span className="text-3xl font-medium">+</span>
             </KeypadButton>
 
             {[4, 5, 6].map((num) => (
@@ -148,7 +148,7 @@ export function RegistrationForm({
               onClick={() => onKeypadPress('-')} 
               className="bg-slate-50 text-primary border-primary/10 hover:border-primary/30"
             >
-              <Minus className="w-5 h-5" />
+              <span className="text-3xl font-medium">−</span>
             </KeypadButton>
 
             {[1, 2, 3].map((num) => (
@@ -160,14 +160,14 @@ export function RegistrationForm({
               onClick={() => onKeypadPress('=')} 
               className="bg-primary text-white border-primary shadow-lg shadow-primary/20 hover:brightness-110"
             >
-              <span className="text-2xl font-black">=</span>
+              <span className="text-3xl font-black">=</span>
             </KeypadButton>
 
             <KeypadButton 
               onClick={() => onKeypadPress('clear')} 
               className="bg-white text-accent border-accent/20 hover:border-accent/40"
             >
-              <span className="text-sm font-black">C</span>
+              <span className="text-xl font-black">C</span>
             </KeypadButton>
             <KeypadButton onClick={() => onKeypadPress('0')}>
               0

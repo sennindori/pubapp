@@ -1,7 +1,8 @@
+@import url('https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@400;500;700;800;900&display=swap');
 @import "tailwindcss";
 
 @theme {
-  --font-sans: "Inter", "BIZ UDPGothic", ui-sans-serif, system-ui, sans-serif;
+  --font-sans: "M PLUS Rounded 1c", "BIZ UDPGothic", ui-sans-serif, system-ui, sans-serif;
   --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, monospace;
 
   --color-primary: #00A99D;
