@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Calendar, Tag, Hash, Clock, Plus, CheckCircle2, Delete, Play, Square, RotateCcw, Timer } from 'lucide-react';
+import { Calendar, Tag, Hash, Clock, Plus, CheckCircle2, Delete, Play, Pause, Square, RotateCcw, Timer } from 'lucide-react';
 import { KeypadButton } from './KeypadButton';
 
 export function RegistrationForm({
@@ -7,40 +7,42 @@ export function RegistrationForm({
 }) {
   const [isRunning, setIsRunning] = useState(false);
   const [elapsed, setElapsed] = useState(0);
-  const [startTime, setStartTime] = useState(null);
+  const [lastTick, setLastTick] = useState(null);
 
   // Load timer state on mount
   useEffect(() => {
     const saved = localStorage.getItem('biz_tracker_timer');
     if (saved) {
-      const { isRunning: savedRunning, startTime: savedStart, elapsed: savedElapsed } = JSON.parse(saved);
-      if (savedRunning && savedStart) {
+      const { isRunning: savedRunning, elapsed: savedElapsed, lastTick: savedLastTick } = JSON.parse(saved);
+      setElapsed(savedElapsed || 0);
+      
+      if (savedRunning && savedLastTick) {
         setIsRunning(true);
-        setStartTime(savedStart);
-        const currentElapsed = savedElapsed + Math.floor((Date.now() - savedStart) / 1000);
-        setElapsed(currentElapsed);
-      } else {
-        setElapsed(savedElapsed || 0);
+        setLastTick(savedLastTick);
+        const diff = Math.floor((Date.now() - savedLastTick) / 1000);
+        setElapsed((prev) => prev + diff);
       }
     }
   }, []);
 
   // Sync timer state to localStorage
   useEffect(() => {
-    const timerData = { isRunning, startTime, elapsed };
+    const timerData = { isRunning, elapsed, lastTick };
     localStorage.setItem('biz_tracker_timer', JSON.stringify(timerData));
-  }, [isRunning, startTime, elapsed]);
+  }, [isRunning, elapsed, lastTick]);
 
   useEffect(() => {
     let interval;
-    if (isRunning && startTime) {
+    if (isRunning) {
+      const start = Date.now();
+      setLastTick(start);
       interval = setInterval(() => {
-        const delta = Math.floor((Date.now() - startTime) / 1000);
-        setElapsed(delta);
+        setElapsed(prev => prev + 1);
+        setLastTick(Date.now());
       }, 1000);
     }
     return () => clearInterval(interval);
-  }, [isRunning, startTime]);
+  }, [isRunning]);
 
   useEffect(() => {
     if (showSuccess) {
@@ -54,15 +56,19 @@ export function RegistrationForm({
     return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
   };
 
-  const handleStart = () => {
-    const now = Date.now();
-    setStartTime(now);
-    setIsRunning(true);
+  const handleToggle = () => {
+    if (isRunning) {
+      setIsRunning(false);
+      setLastTick(null);
+    } else {
+      setIsRunning(true);
+      setLastTick(Date.now());
+    }
   };
 
   const handleStop = () => {
     setIsRunning(false);
-    setStartTime(null);
+    setLastTick(null);
     const calculatedHours = elapsed / 3600;
     const roundedHours = Math.max(0.1, Math.round(calculatedHours * 10) / 10);
     setHours(Math.min(8.0, roundedHours));
@@ -71,7 +77,7 @@ export function RegistrationForm({
 
   const handleReset = () => {
     setIsRunning(false);
-    setStartTime(null);
+    setLastTick(null);
     setElapsed(0);
     localStorage.removeItem('biz_tracker_timer');
   };
@@ -201,19 +207,27 @@ export function RegistrationForm({
             </div>
             
             <div className="flex items-center gap-2.5">
-              {!isRunning ? (
-                <button 
-                  onClick={handleStart}
-                  className="w-12 h-12 flex items-center justify-center bg-primary text-white rounded-2xl shadow-lg shadow-primary/20 hover:scale-105 active:scale-95 transition-all"
-                  title="START"
-                >
+              <button 
+                onClick={handleToggle}
+                className={`w-12 h-12 flex items-center justify-center rounded-2xl shadow-lg transition-all active:scale-95 ${
+                  isRunning 
+                  ? 'bg-amber-500 text-white shadow-amber-200' 
+                  : 'bg-primary text-white shadow-primary/20 hover:scale-105'
+                }`}
+                title={isRunning ? "PAUSE" : "START"}
+              >
+                {isRunning ? (
+                  <Pause className="w-5 h-5 fill-current" />
+                ) : (
                   <Play className="w-5 h-5 fill-current ml-0.5" />
-                </button>
-              ) : (
+                )}
+              </button>
+              
+              {(elapsed > 0 || isRunning) && (
                 <button 
                   onClick={handleStop}
-                  className="w-12 h-12 flex items-center justify-center bg-amber-500 text-white rounded-2xl shadow-lg shadow-amber-200 hover:scale-105 active:scale-95 transition-all"
-                  title="STOP"
+                  className="w-12 h-12 flex items-center justify-center bg-slate-700 text-white rounded-2xl shadow-lg shadow-slate-200 hover:scale-105 active:scale-95 transition-all"
+                  title="FINISH & APPLY"
                 >
                   <Square className="w-5 h-5 fill-current" />
                 </button>
