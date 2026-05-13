@@ -134,9 +134,9 @@ export function RegistrationForm({
             ))}
             <KeypadButton 
               onClick={() => onKeypadPress('+')} 
-              className="bg-slate-50 text-primary border-primary/10 hover:border-primary/30"
+              className="bg-slate-50 text-primary border border-primary/10"
             >
-              <span className="text-3xl font-medium">+</span>
+              <span className="text-2xl font-bold">+</span>
             </KeypadButton>
 
             {[4, 5, 6].map((num) => (
@@ -146,9 +146,9 @@ export function RegistrationForm({
             ))}
             <KeypadButton 
               onClick={() => onKeypadPress('-')} 
-              className="bg-slate-50 text-primary border-primary/10 hover:border-primary/30"
+              className="bg-slate-50 text-primary border border-primary/10"
             >
-              <span className="text-3xl font-medium">−</span>
+              <span className="text-2xl font-bold">-</span>
             </KeypadButton>
 
             {[1, 2, 3].map((num) => (
@@ -158,9 +158,9 @@ export function RegistrationForm({
             ))}
             <KeypadButton 
               onClick={() => onKeypadPress('=')} 
-              className="bg-primary text-white border-primary shadow-lg shadow-primary/20 hover:brightness-110"
+              className="bg-primary text-white border-primary"
             >
-              <span className="text-3xl font-black">=</span>
+              <span className="text-2xl font-black leading-none">=</span>
             </KeypadButton>
 
             <KeypadButton 

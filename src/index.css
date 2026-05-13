@@ -2,8 +2,8 @@
 @import "tailwindcss";
 
 @theme {
-  --font-sans: "M PLUS Rounded 1c", "BIZ UDPGothic", ui-sans-serif, system-ui, sans-serif;
-  --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, monospace;
+  --font-sans: "M PLUS Rounded 1c", ui-sans-serif, system-ui, sans-serif;
+  --font-mono: "M PLUS Rounded 1c", ui-monospace, SFMono-Regular, monospace;
 
   --color-primary: #00A99D;
   --color-accent: #FF7F50;
@@ -21,6 +21,12 @@
 
 @layer base {
   body {
-    @apply bg-background text-base-text font-sans antialiased;
+    @apply font-sans bg-background text-base-text antialiased;
+  }
+  * {
+    font-family: inherit;
+  }
+  html {
+    font-family: "M PLUS Rounded 1c", sans-serif;
   }
 }
