@@ -7,21 +7,44 @@ export function RegistrationForm({
 }) {
   const [isRunning, setIsRunning] = useState(false);
   const [elapsed, setElapsed] = useState(0);
+  const [startTime, setStartTime] = useState(null);
+
+  // Load timer state on mount
+  useEffect(() => {
+    const saved = localStorage.getItem('biz_tracker_timer');
+    if (saved) {
+      const { isRunning: savedRunning, startTime: savedStart, elapsed: savedElapsed } = JSON.parse(saved);
+      if (savedRunning && savedStart) {
+        setIsRunning(true);
+        setStartTime(savedStart);
+        const currentElapsed = savedElapsed + Math.floor((Date.now() - savedStart) / 1000);
+        setElapsed(currentElapsed);
+      } else {
+        setElapsed(savedElapsed || 0);
+      }
+    }
+  }, []);
+
+  // Sync timer state to localStorage
+  useEffect(() => {
+    const timerData = { isRunning, startTime, elapsed };
+    localStorage.setItem('biz_tracker_timer', JSON.stringify(timerData));
+  }, [isRunning, startTime, elapsed]);
 
   useEffect(() => {
     let interval;
-    if (isRunning) {
+    if (isRunning && startTime) {
       interval = setInterval(() => {
-        setElapsed(prev => prev + 1);
+        const delta = Math.floor((Date.now() - startTime) / 1000);
+        setElapsed(delta);
       }, 1000);
     }
     return () => clearInterval(interval);
-  }, [isRunning]);
+  }, [isRunning, startTime]);
 
   useEffect(() => {
     if (showSuccess) {
-      setIsRunning(false);
-      setElapsed(0);
+      handleReset();
     }
   }, [showSuccess]);
 
@@ -31,15 +54,26 @@ export function RegistrationForm({
     return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
   };
 
+  const handleStart = () => {
+    const now = Date.now();
+    setStartTime(now);
+    setIsRunning(true);
+  };
+
   const handleStop = () => {
     setIsRunning(false);
-    // Convert seconds to hours rounded to nearest 0.1 or 0.5?
-    // Let's go with 0.5 to match slider step for now, or 0.1 for more "approximate" feel.
-    // The display uses toFixed(1), so 0.1 precision is supported.
+    setStartTime(null);
     const calculatedHours = elapsed / 3600;
     const roundedHours = Math.max(0.1, Math.round(calculatedHours * 10) / 10);
     setHours(Math.min(8.0, roundedHours));
     setIsManualHours(true);
+  };
+
+  const handleReset = () => {
+    setIsRunning(false);
+    setStartTime(null);
+    setElapsed(0);
+    localStorage.removeItem('biz_tracker_timer');
   };
   return (
     <section className="bg-surface p-8 rounded-[32px] border border-border shadow-md shadow-slate-100 space-y-8">
@@ -135,7 +169,7 @@ export function RegistrationForm({
             <div className="flex items-center gap-2.5">
               {!isRunning ? (
                 <button 
-                  onClick={() => setIsRunning(true)}
+                  onClick={handleStart}
                   className="w-12 h-12 flex items-center justify-center bg-primary text-white rounded-2xl shadow-lg shadow-primary/20 hover:scale-105 active:scale-95 transition-all"
                   title="START"
                 >
@@ -151,7 +185,7 @@ export function RegistrationForm({
                 </button>
               )}
               <button 
-                onClick={() => { setIsRunning(false); setElapsed(0); }}
+                onClick={handleReset}
                 className="w-12 h-12 flex items-center justify-center bg-slate-50 text-slate-400 rounded-2xl hover:bg-slate-100 hover:text-slate-600 active:scale-95 transition-all border border-slate-100"
                 title="RESET"
               >
