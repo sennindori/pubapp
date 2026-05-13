@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { Calendar, TrendingUp } from 'lucide-react';
+import { Calendar, TrendingUp, Settings } from 'lucide-react';
 import { getLocalDate } from './lib/utils';
 import { QR } from './components/QR';
 import { SummaryCard } from './components/SummaryCard';
@@ -10,13 +10,18 @@ import { DeleteModal } from './components/Modals/DeleteModal';
 import { EditModal } from './components/Modals/EditModal';
 import { QRModal } from './components/Modals/QRModal';
 
-const DEFAULT_LABELS = ['事務作業', '会議', 'メール', '開発', '休憩'];
+const DEFAULT_LABELS = ['開梱', '撮影', '札付け', 'パケ入れ', '付属確認', 'X線', '検品', 'その他',];
 
 export default function App() {
   // --- State ---
   const [labels, setLabels] = useState(() => {
     const saved = localStorage.getItem('biz_tracker_labels');
-    return saved ? JSON.parse(saved) : DEFAULT_LABELS;
+    const loaded = saved ? JSON.parse(saved) : DEFAULT_LABELS;
+    // Always ensure at least 8 slots are available
+    if (loaded.length < 8) {
+      return [...loaded, ...Array(8 - loaded.length).fill('')];
+    }
+    return loaded;
   });
 
   const [records, setRecords] = useState(() => {
@@ -146,16 +151,32 @@ export default function App() {
 
   return (
     <div className="max-w-4xl mx-auto px-6 py-12 md:py-16">
-      <header className="mb-12 flex flex-col md:flex-row md:items-center justify-between gap-8">
-        <div>
-          <div className="flex items-center gap-4 mb-3">
-            <div className="p-3 bg-primary rounded-2xl shadow-lg shadow-primary/10">
-              <TrendingUp className="w-7 h-7 text-white" />
+      <header className="mb-12 space-y-8">
+        <div className="flex items-center justify-between w-full">
+          <div>
+            <div className="flex items-center gap-4 mb-3">
+              <div className="p-3 bg-primary rounded-2xl shadow-lg shadow-primary/10">
+                <TrendingUp className="w-7 h-7 text-white" />
+              </div>
+              <h1 className="text-4xl font-bold tracking-tight text-primary">作業メモ電卓</h1>
             </div>
-            <h1 className="text-4xl font-bold tracking-tight text-primary">作業メモ電卓</h1>
+            <p className="text-[11px] font-mono font-bold uppercase tracking-[0.2em] text-slate-400 ml-1.5 opacity-80">
+              業務の簡易計算メモが取れるツール
+            </p>
           </div>
-          <p className="text-slate-500 font-medium ml-1">日々の業務成果を確実に記録するメモ</p>
+          
+          <button 
+            onClick={() => setIsSettingsOpen(!isSettingsOpen)}
+            className={`p-4 rounded-2xl transition-all ${
+              isSettingsOpen 
+                ? 'bg-primary text-white shadow-lg shadow-primary/20 scale-110' 
+                : 'bg-surface text-slate-400 hover:text-primary border border-border shadow-sm'
+            }`}
+          >
+            <Settings className={`w-6 h-6 ${isSettingsOpen ? 'animate-spin-slow' : ''}`} />
+          </button>
         </div>
+        
         <SummaryCard 
           date={today}
           {...stats}
@@ -163,13 +184,7 @@ export default function App() {
       </header>
 
       <main className="grid grid-cols-1 lg:grid-cols-12 gap-10">
-        <div className="lg:col-span-5 space-y-8">
-          <SettingsPanel 
-            isOpen={isSettingsOpen}
-            setIsOpen={setIsSettingsOpen}
-            labels={labels}
-            updateLabel={updateLabel}
-          />
+        <div className="lg:col-span-6 space-y-8">
           <RegistrationForm 
             date={date}
             setDate={setDate}
@@ -187,7 +202,7 @@ export default function App() {
           />
         </div>
 
-        <div className="lg:col-span-7">
+        <div className="lg:col-span-6">
           <div className="flex items-center justify-between mb-8">
             <h2 className="text-2xl font-bold text-base-text flex items-center gap-3">
               <Calendar className="w-6 h-6 text-primary" />
@@ -259,6 +274,12 @@ export default function App() {
           }}
         />
       )}
+      <SettingsPanel 
+        isOpen={isSettingsOpen}
+        setIsOpen={setIsSettingsOpen}
+        labels={labels}
+        updateLabel={updateLabel}
+      />
     </div>
   );
 }

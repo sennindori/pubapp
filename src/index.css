@@ -10,6 +10,12 @@
   --color-surface: #F9F9F9;
   --color-border: #EFEFEF;
   --color-base-text: #222222;
+
+  @keyframes spin-slow {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+  }
+  --animate-spin-slow: spin-slow 8s linear infinite;
 }
 
 @layer base {
