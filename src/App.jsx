@@ -32,6 +32,9 @@ export default function App() {
   const [date, setDate] = useState(getLocalDate());
   const [label, setLabel] = useState(labels[0]);
   const [countInput, setCountInput] = useState('0');
+  const [prevCalcValue, setPrevCalcValue] = useState(null);
+  const [calcOperator, setCalcOperator] = useState(null);
+  const [waitingForOperand, setWaitingForOperand] = useState(false);
   const [hours, setHours] = useState(1.0);
   const [isManualHours, setIsManualHours] = useState(false);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
@@ -128,16 +131,67 @@ export default function App() {
     setShowSuccess(true);
     setTimeout(() => setShowSuccess(false), 2000);
     setCountInput('0');
+    setPrevCalcValue(null);
+    setCalcOperator(null);
+    setWaitingForOperand(false);
     setIsManualHours(false);
     setDate(getLocalDate());
   };
 
   const handleKeypadPress = (key) => {
+    const performCalc = (prev, current, op) => {
+      const p = parseInt(prev) || 0;
+      const c = parseInt(current) || 0;
+      if (op === '+') return (p + c).toString();
+      if (op === '-') return Math.max(0, p - c).toString();
+      return current;
+    };
+
+    if (key === 'clear') {
+      setCountInput('0');
+      setPrevCalcValue(null);
+      setCalcOperator(null);
+      setWaitingForOperand(false);
+      return;
+    }
+
+    if (key === 'back') {
+      setCountInput(prev => prev.length <= 1 ? '0' : prev.slice(0, -1));
+      return;
+    }
+
+    if (key === '+' || key === '-') {
+      if (calcOperator && !waitingForOperand) {
+        const result = performCalc(prevCalcValue, countInput, calcOperator);
+        setCountInput(result);
+        setPrevCalcValue(result);
+      } else {
+        setPrevCalcValue(countInput);
+      }
+      setCalcOperator(key);
+      setWaitingForOperand(true);
+      return;
+    }
+
+    if (key === '=') {
+      if (calcOperator && prevCalcValue !== null) {
+        const result = performCalc(prevCalcValue, countInput, calcOperator);
+        setCountInput(result);
+        setPrevCalcValue(null);
+        setCalcOperator(null);
+        setWaitingForOperand(false);
+      }
+      return;
+    }
+
+    // Number keys
     setCountInput(prev => {
-      if (key === 'clear') return '0';
-      if (key === 'back') return prev.length <= 1 ? '0' : prev.slice(0, -1);
+      if (waitingForOperand) {
+        setWaitingForOperand(false);
+        return key;
+      }
       if (prev === '0') return key;
-      return prev.length >= 4 ? prev : prev + key;
+      return prev.length >= 6 ? prev : prev + key;
     });
   };
 

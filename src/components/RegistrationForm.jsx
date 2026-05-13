@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Calendar, Tag, Hash, Clock, Plus, CheckCircle2, X, Delete, Play, Square, RotateCcw, Timer } from 'lucide-react';
+import { Calendar, Tag, Hash, Clock, Plus, CheckCircle2, X, Delete, Play, Square, RotateCcw, Timer, Minus, Equal } from 'lucide-react';
 import { KeypadButton } from './KeypadButton';
 
 export function RegistrationForm({
@@ -126,26 +126,60 @@ export function RegistrationForm({
             <span className="text-4xl font-black text-primary font-mono">{countInput}</span>
           </div>
 
-          <div className="grid grid-cols-3 gap-2.5">
-            {[1, 2, 3, 4, 5, 6, 7, 8, 9].map((num) => (
+          <div className="grid grid-cols-4 gap-2.5">
+            {[7, 8, 9].map((num) => (
               <KeypadButton key={num} onClick={() => onKeypadPress(num.toString())}>
                 {num}
               </KeypadButton>
             ))}
             <KeypadButton 
-              onClick={() => onKeypadPress('clear')} 
-              className="bg-white text-accent hover:border-accent/30"
+              onClick={() => onKeypadPress('+')} 
+              className="bg-slate-50 text-primary border-primary/10 hover:border-primary/30"
             >
-              <X className="w-5 h-5" />
+              <Plus className="w-5 h-5" />
+            </KeypadButton>
+
+            {[4, 5, 6].map((num) => (
+              <KeypadButton key={num} onClick={() => onKeypadPress(num.toString())}>
+                {num}
+              </KeypadButton>
+            ))}
+            <KeypadButton 
+              onClick={() => onKeypadPress('-')} 
+              className="bg-slate-50 text-primary border-primary/10 hover:border-primary/30"
+            >
+              <Minus className="w-5 h-5" />
+            </KeypadButton>
+
+            {[1, 2, 3].map((num) => (
+              <KeypadButton key={num} onClick={() => onKeypadPress(num.toString())}>
+                {num}
+              </KeypadButton>
+            ))}
+            <KeypadButton 
+              onClick={() => onKeypadPress('=')} 
+              className="bg-primary text-white border-primary shadow-lg shadow-primary/20 hover:brightness-110"
+            >
+              <span className="text-2xl font-black">=</span>
+            </KeypadButton>
+
+            <KeypadButton 
+              onClick={() => onKeypadPress('clear')} 
+              className="bg-white text-accent border-accent/20 hover:border-accent/40"
+            >
+              <span className="text-sm font-black">C</span>
             </KeypadButton>
             <KeypadButton onClick={() => onKeypadPress('0')}>
               0
             </KeypadButton>
             <KeypadButton 
               onClick={() => onKeypadPress('back')} 
-              className="bg-white text-accent hover:border-accent/30"
+              className="bg-white text-slate-400 border-slate-200 hover:border-slate-400 col-span-2"
             >
-              <Delete className="w-5 h-5" />
+              <div className="flex items-center gap-2">
+                <Delete className="w-5 h-5" />
+                <span className="text-xs font-bold uppercase tracking-widest">Del</span>
+              </div>
             </KeypadButton>
           </div>
         </div>
