@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Calendar, Tag, Hash, Clock, Plus, CheckCircle2, Delete, Play, Pause, Square, RotateCcw, Timer } from 'lucide-react';
+import { Calendar, Tag, Hash, Clock, Plus, CheckCircle2, Delete, Play, Pause, Download, Timer } from 'lucide-react';
 import { KeypadButton } from './KeypadButton';
 
 export function RegistrationForm({
@@ -73,6 +73,8 @@ export function RegistrationForm({
     const roundedHours = Math.max(0.1, Math.round(calculatedHours * 10) / 10);
     setHours(Math.min(8.0, roundedHours));
     setIsManualHours(true);
+    setElapsed(0);
+    localStorage.removeItem('biz_tracker_timer');
   };
 
   const handleReset = () => {
@@ -195,24 +197,24 @@ export function RegistrationForm({
             <Clock className="w-4 h-4 text-primary" />
             タイムトラッカー
           </label>
-          <div className="bg-white border-2 border-primary/5 rounded-2xl p-5 mb-8 flex items-center justify-between shadow-sm group hover:border-primary/20 transition-all">
-            <div className="flex items-center gap-4">
-              <div className={`w-12 h-12 rounded-2xl flex items-center justify-center transition-colors ${isRunning ? 'bg-amber-100' : 'bg-slate-50'}`}>
-                <Clock className={`w-6 h-6 ${isRunning ? 'text-amber-500 animate-pulse' : 'text-slate-300'}`} />
+          <div className="bg-white border-2 border-primary/5 rounded-2xl p-3 sm:p-4 mb-8 flex items-center justify-between shadow-sm group hover:border-primary/20 transition-all">
+            <div className="flex items-center gap-2 sm:gap-4 shrink-0">
+              <div className={`w-10 h-10 sm:w-12 sm:h-12 rounded-2xl flex items-center justify-center transition-colors ${isRunning ? 'bg-amber-100' : 'bg-slate-50'}`}>
+                <Clock className={`w-5 h-5 sm:w-6 sm:h-6 ${isRunning ? 'text-amber-500 animate-pulse' : 'text-slate-300'}`} />
               </div>
-              <div>
-                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-[0.2em] mb-1">Elapsed Time</p>
-                <p className="text-3xl font-mono font-black text-slate-700 tracking-tight">{formatTime(elapsed)}</p>
+              <div className="min-w-0">
+                <p className="text-[9px] sm:text-[10px] font-bold text-slate-400 uppercase tracking-[0.1em] sm:tracking-[0.2em] mb-0.5 sm:mb-1">Elapsed Time</p>
+                <p className="text-2xl sm:text-3xl font-mono font-black text-slate-700 tracking-tight leading-none">{formatTime(elapsed)}</p>
               </div>
             </div>
             
-            <div className="flex items-center gap-2.5">
+            <div className="flex items-center gap-2 shrink-0">
               <button 
                 onClick={handleToggle}
-                className={`w-12 h-12 flex items-center justify-center rounded-2xl shadow-lg transition-all active:scale-95 ${
+                className={`w-10 h-10 sm:w-12 sm:h-12 flex items-center justify-center rounded-2xl shadow-lg transition-all active:scale-95 ${
                   isRunning 
                   ? 'bg-amber-500 text-white shadow-amber-200' 
-                  : 'bg-primary text-white shadow-primary/20 hover:scale-105'
+                  : 'bg-primary text-white shadow-primary/20'
                 }`}
                 title={isRunning ? "PAUSE" : "START"}
               >
@@ -223,21 +225,16 @@ export function RegistrationForm({
                 )}
               </button>
               
-              {(elapsed > 0 || isRunning) && (
-                <button 
-                  onClick={handleStop}
-                  className="w-12 h-12 flex items-center justify-center bg-slate-700 text-white rounded-2xl shadow-lg shadow-slate-200 hover:scale-105 active:scale-95 transition-all"
-                  title="FINISH & APPLY"
-                >
-                  <Square className="w-5 h-5 fill-current" />
-                </button>
-              )}
               <button 
-                onClick={handleReset}
-                className="w-12 h-12 flex items-center justify-center bg-slate-50 text-slate-400 rounded-2xl hover:bg-slate-100 hover:text-slate-600 active:scale-95 transition-all border border-slate-100"
-                title="RESET"
+                onClick={handleStop}
+                className={`w-10 h-10 sm:w-12 sm:h-12 flex items-center justify-center rounded-2xl shadow-lg transition-all active:scale-95 ${
+                  elapsed > 0 
+                  ? 'bg-slate-700 text-white shadow-slate-200' 
+                  : 'bg-slate-100 text-slate-300 pointer-events-none'
+                }`}
+                title="APPLY TO HOURS"
               >
-                <RotateCcw className="w-5 h-5" />
+                <Download className="w-5 h-5" />
               </button>
             </div>
           </div>
