@@ -6,43 +6,47 @@ export function RegistrationForm({
   date, setDate, label, setLabel, labels, countInput, onKeypadPress, hours, setHours, setIsManualHours, onAdd, showSuccess, disabled
 }) {
   const [isRunning, setIsRunning] = useState(false);
+  const [accumulatedMs, setAccumulatedMs] = useState(0);
+  const [startTime, setStartTime] = useState(null);
   const [elapsed, setElapsed] = useState(0);
-  const [lastTick, setLastTick] = useState(null);
 
   // Load timer state on mount
   useEffect(() => {
     const saved = localStorage.getItem('biz_tracker_timer');
     if (saved) {
-      const { isRunning: savedRunning, elapsed: savedElapsed, lastTick: savedLastTick } = JSON.parse(saved);
-      setElapsed(savedElapsed || 0);
+      const { isRunning: savedRunning, accumulatedMs: savedAcc, startTime: savedStart } = JSON.parse(saved);
       
-      if (savedRunning && savedLastTick) {
+      if (savedRunning && savedStart) {
         setIsRunning(true);
-        setLastTick(savedLastTick);
-        const diff = Math.floor((Date.now() - savedLastTick) / 1000);
-        setElapsed((prev) => prev + diff);
+        setStartTime(savedStart);
+        setAccumulatedMs(savedAcc || 0);
+        // Instant sync for display
+        const total = (savedAcc || 0) + (Date.now() - savedStart);
+        setElapsed(Math.floor(total / 1000));
+      } else {
+        setAccumulatedMs(savedAcc || 0);
+        setElapsed(Math.floor((savedAcc || 0) / 1000));
       }
     }
   }, []);
 
   // Sync timer state to localStorage
   useEffect(() => {
-    const timerData = { isRunning, elapsed, lastTick };
+    const timerData = { isRunning, accumulatedMs, startTime };
     localStorage.setItem('biz_tracker_timer', JSON.stringify(timerData));
-  }, [isRunning, elapsed, lastTick]);
+  }, [isRunning, accumulatedMs, startTime]);
 
+  // Heartbeat to update display
   useEffect(() => {
     let interval;
-    if (isRunning) {
-      const start = Date.now();
-      setLastTick(start);
+    if (isRunning && startTime) {
       interval = setInterval(() => {
-        setElapsed(prev => prev + 1);
-        setLastTick(Date.now());
-      }, 1000);
+        const total = accumulatedMs + (Date.now() - startTime);
+        setElapsed(Math.floor(total / 1000));
+      }, 500); 
     }
     return () => clearInterval(interval);
-  }, [isRunning]);
+  }, [isRunning, startTime, accumulatedMs]);
 
   useEffect(() => {
     if (showSuccess) {
@@ -58,31 +62,47 @@ export function RegistrationForm({
 
   const handleToggle = () => {
     if (isRunning) {
+      // Pause: Save current period to accumulated
+      const delta = Date.now() - startTime;
+      setAccumulatedMs(prev => prev + delta);
+      setStartTime(null);
       setIsRunning(false);
-      setLastTick(null);
     } else {
+      // Start/Resume: Set new start point
+      setStartTime(Date.now());
       setIsRunning(true);
-      setLastTick(Date.now());
     }
   };
 
   const handleStop = () => {
-    setIsRunning(false);
-    setLastTick(null);
-    const calculatedHours = elapsed / 3600;
+    let finalElapsedMs = accumulatedMs;
+    if (isRunning && startTime) {
+      finalElapsedMs += (Date.now() - startTime);
+    }
+    
+    const finalSeconds = Math.floor(finalElapsedMs / 1000);
+    const calculatedHours = finalSeconds / 3600;
     const roundedHours = Math.max(0.1, Math.round(calculatedHours * 10) / 10);
+    
     setHours(Math.min(8.0, roundedHours));
     setIsManualHours(true);
+    
+    // Clear timer
+    setIsRunning(false);
+    setStartTime(null);
+    setAccumulatedMs(0);
     setElapsed(0);
     localStorage.removeItem('biz_tracker_timer');
   };
 
   const handleReset = () => {
     setIsRunning(false);
-    setLastTick(null);
+    setStartTime(null);
+    setAccumulatedMs(0);
     setElapsed(0);
     localStorage.removeItem('biz_tracker_timer');
   };
+
   return (
     <section className="bg-surface p-8 rounded-[32px] border border-border shadow-md shadow-slate-100 space-y-8">
       <div className="space-y-6">
@@ -110,7 +130,7 @@ export function RegistrationForm({
                 key={idx}
                 type="button"
                 onClick={() => setLabel(l)}
-                className={`px-2 py-3.5 text-[13px] font-bold rounded-xl border-2 transition-all transition-all truncate ${
+                className={`px-2 py-3.5 text-[13px] font-bold rounded-xl border-2 transition-all truncate ${
                   label === l && l !== ''
                     ? 'bg-primary border-primary text-white shadow-lg shadow-primary/20 scale-[1.02]' 
                     : 'bg-white border-border text-slate-500 hover:border-primary/40 hover:text-primary active:scale-95'
