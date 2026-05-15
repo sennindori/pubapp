@@ -1,0 +1,54 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // 0. Global Safety Net
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // 1. Primitive Helpers
+    function isSignedIn() { return request.auth != null; }
+    function isOwner(userId) { return isSignedIn() && request.auth.uid == userId; }
+    function isValidId(id) { return id is string && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$'); }
+    function incoming() { return request.resource.data; }
+    function existing() { return resource.data; }
+
+    // 2. Validation Helpers
+    function isValidUserProfile(data) {
+      return data.keys().hasAll(['labels', 'updatedAt'])
+        && data.keys().size() == 2
+        && data.labels is list
+        && data.labels.size() >= 0 && data.labels.size() <= 12
+        && data.updatedAt == request.time;
+    }
+
+    function isValidRecord(data) {
+      return data.keys().hasAll(['date', 'label', 'count', 'hours', 'registeredAt'])
+        && data.keys().size() == 5
+        && data.date is string && data.date.size() == 10
+        && data.label is string && data.label.size() <= 100
+        && data.count is int && data.count >= 0 && data.count <= 1000000
+        && data.hours is number && data.hours >= 0 && data.hours <= 24
+        && data.registeredAt is string; // Using ISO string from client for consistency with existing logic, or use timestamp
+    }
+
+    // 3. Match Blocks
+    match /users/{userId} {
+      allow get: if isOwner(userId);
+      allow create: if isOwner(userId) && isValidUserProfile(incoming());
+      allow update: if isOwner(userId) && isValidUserProfile(incoming())
+        && incoming().diff(existing()).affectedKeys().hasOnly(['labels', 'updatedAt']);
+      
+      match /records/{recordId} {
+        allow list: if isOwner(userId);
+        allow get: if isOwner(userId);
+        allow create: if isOwner(userId) && isValidRecord(incoming());
+        allow update: if isOwner(userId) && isValidRecord(incoming())
+          && (
+            incoming().diff(existing()).affectedKeys().hasOnly(['count', 'hours', 'date'])
+          );
+        allow delete: if isOwner(userId);
+      }
+    }
+  }
+}

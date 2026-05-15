@@ -1,0 +1,45 @@
+{
+  "entities": {
+    "UserProfile": {
+      "title": "User Profile",
+      "description": "User specific settings and labels",
+      "type": "object",
+      "properties": {
+        "labels": {
+          "type": "array",
+          "description": "Custom category labels for the user",
+          "items": { "type": "string" }
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Last update timestamp"
+        }
+      },
+      "required": ["labels", "updatedAt"]
+    },
+    "Record": {
+      "title": "Log Record",
+      "description": "A single business activity record",
+      "type": "object",
+      "properties": {
+        "date": { "type": "string", "description": "Date of the activity (YYYY-MM-DD)" },
+        "label": { "type": "string", "description": "Category label" },
+        "count": { "type": "integer", "description": "Activity count" },
+        "hours": { "type": "number", "description": "Hours spent" },
+        "registeredAt": { "type": "string", "format": "date-time", "description": "Registration timestamp" }
+      },
+      "required": ["date", "label", "count", "hours", "registeredAt"]
+    }
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": "UserProfile",
+      "description": "Root user profile containing settings"
+    },
+    "/users/{userId}/records/{recordId}": {
+      "schema": "Record",
+      "description": "Collection of activity records for a specific user"
+    }
+  }
+}
