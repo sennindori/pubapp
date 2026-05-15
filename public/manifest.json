@@ -1,7 +1,7 @@
 {
-  "name": "BizTracker Pro",
-  "short_name": "BizTracker",
-  "description": "Daily business efficiency tracker with dynamic aggregation.",
+  "name": "メモハック",
+  "short_name": "メモハック",
+  "description": "作業単位の点数/時間を記録してQRで貼り付けられるメモ",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#f8fafc",

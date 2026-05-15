@@ -212,7 +212,7 @@ export default function App() {
               <div className="p-3 bg-primary rounded-2xl shadow-lg shadow-primary/10">
                 <TrendingUp className="w-7 h-7 text-white" />
               </div>
-              <h1 className="text-4xl font-bold tracking-tight text-primary">作業メモ電卓</h1>
+              <h1 className="text-4xl font-bold tracking-tight text-primary">メモハック</h1>
             </div>
             <p className="text-[11px] font-mono font-bold uppercase tracking-[0.2em] text-slate-400 ml-1.5 opacity-80">
               業務の簡易計算メモが取れるツール
@@ -300,7 +300,7 @@ export default function App() {
           </p>
         </div>
         <div className="text-center text-slate-400 text-xs font-bold tracking-widest uppercase opacity-60">
-          &copy; {new Date().getFullYear()} 作業メモ電卓
+          &copy; {new Date().getFullYear()} メモハック
         </div>
       </footer>
 
