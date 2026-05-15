@@ -15,8 +15,21 @@ export function AuthModal() {
       const provider = new GoogleAuthProvider();
       await signInWithPopup(auth, provider);
     } catch (err) {
-      console.error(err);
-      setError('ログインに失敗しました。時間をおいて再度お試しください。');
+      console.error('Login Error:', err);
+      // 詳細なエラーコードを表示して原因を特定しやすくする
+      let message = 'ログインに失敗しました。';
+      if (err.code === 'auth/operation-not-allowed') {
+        message = 'FirebaseコンソールでGoogle認証が有効になっていません。';
+      } else if (err.code === 'auth/popup-blocked') {
+        message = 'ブラウザによってポップアップがブロックされました。';
+      } else if (err.code === 'auth/popup-closed-by-user') {
+        message = 'ログインを途中でキャンセルしました。';
+      } else if (err.code === 'auth/unauthorized-domain') {
+        message = 'このドメインでのログインが許可されていません（Firebaseの設定が必要です）。';
+      } else {
+        message += ` (${err.code || 'unknown-error'})`;
+      }
+      setError(message);
     } finally {
       setLoading(false);
     }
