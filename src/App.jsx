@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { Calendar, TrendingUp, Settings, LogOut, Loader2 } from 'lucide-react';
+import { Calendar, TrendingUp, Settings, Loader2 } from 'lucide-react';
 import { getLocalDate } from './lib/utils';
 import { QR } from './components/QR';
 import { SummaryCard } from './components/SummaryCard';
@@ -307,14 +307,6 @@ export default function App() {
               <p className="text-[11px] font-mono font-bold uppercase tracking-[0.2em] text-slate-400 ml-1.5 opacity-80">
                 業務の簡易計算メモが取れるツール
               </p>
-              <span className="w-1 h-1 bg-slate-300 rounded-full" />
-              <button 
-                onClick={handleLogout}
-                className="text-[10px] font-bold text-slate-400 hover:text-red-500 transition-colors uppercase tracking-widest flex items-center gap-1.5"
-              >
-                <LogOut className="w-3 h-3" />
-                Logout
-              </button>
             </div>
           </div>
           
@@ -452,6 +444,8 @@ export default function App() {
         setIsOpen={setIsSettingsOpen}
         labels={labels}
         updateLabel={updateLabel}
+        user={user}
+        onLogout={handleLogout}
       />
     </div>
   );
