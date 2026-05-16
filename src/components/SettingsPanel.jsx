@@ -216,6 +216,7 @@ export function SettingsPanel({ isOpen, setIsOpen, labels, updateLabel, user, on
                           value={currentPassword}
                           onChange={(e) => setCurrentPassword(e.target.value)}
                           placeholder="現在のパスワード"
+                          autoComplete="current-password"
                           className="w-full px-5 py-4 bg-slate-50 border border-slate-200 rounded-2xl focus:ring-4 focus:ring-primary/10 focus:border-primary outline-none transition-all text-sm font-bold"
                         />
                         <input
@@ -224,6 +225,7 @@ export function SettingsPanel({ isOpen, setIsOpen, labels, updateLabel, user, on
                           value={newPassword}
                           onChange={(e) => setNewPassword(e.target.value)}
                           placeholder="新しいパスワード (6文字以上)"
+                          autoComplete="new-password"
                           className="w-full px-5 py-4 bg-slate-50 border border-slate-200 rounded-2xl focus:ring-4 focus:ring-primary/10 focus:border-primary outline-none transition-all text-sm font-bold"
                         />
                       </div>
