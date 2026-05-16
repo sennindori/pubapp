@@ -30,6 +30,16 @@
         "registeredAt": { "type": "string", "format": "date-time", "description": "Registration timestamp" }
       },
       "required": ["date", "label", "count", "hours", "registeredAt"]
+    },
+    "DailyMemo": {
+      "title": "Daily Memo",
+      "description": "Free text memo for a specific day",
+      "type": "object",
+      "properties": {
+        "text": { "type": "string", "description": "The content of the memo" },
+        "updatedAt": { "type": "string", "format": "date-time", "description": "Last update timestamp" }
+      },
+      "required": ["text", "updatedAt"]
     }
   },
   "firestore": {
@@ -40,6 +50,10 @@
     "/users/{userId}/records/{recordId}": {
       "schema": "Record",
       "description": "Collection of activity records for a specific user"
+    },
+    "/users/{userId}/memos/{date}": {
+      "schema": "DailyMemo",
+      "description": "Daily memos for a specific date"
     }
   }
 }

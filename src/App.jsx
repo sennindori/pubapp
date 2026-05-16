@@ -3,6 +3,7 @@ import { Calendar, TrendingUp, Settings, Loader2 } from 'lucide-react';
 import { getLocalDate } from './lib/utils';
 import { QR } from './components/QR';
 import { SummaryCard } from './components/SummaryCard';
+import { DailyMemo } from './components/DailyMemo';
 import { SettingsPanel } from './components/SettingsPanel';
 import { RegistrationForm } from './components/RegistrationForm';
 import { RecordCard } from './components/RecordCard';
@@ -23,7 +24,8 @@ import {
   updateDoc,
   deleteDoc,
   serverTimestamp,
-  orderBy
+  orderBy,
+  increment
 } from 'firebase/firestore';
 
 const DEFAULT_LABELS = ['開梱', '撮影', '札付け', 'パケ入れ', '付属確認', 'X線', '検品', 'その他'];
@@ -36,6 +38,7 @@ export default function App() {
   // --- App State ---
   const [labels, setLabels] = useState(DEFAULT_LABELS);
   const [records, setRecords] = useState([]);
+  const [memo, setMemo] = useState(null);
   const [isDataLoading, setIsDataLoading] = useState(false);
 
   const [date, setDate] = useState(getLocalDate());
@@ -70,6 +73,13 @@ export default function App() {
     if (!user) {
       setRecords([]);
       setLabels(DEFAULT_LABELS);
+      return;
+    }
+
+    // Check if user needs email verification (password provider)
+    const isPasswordUser = user.providerData.some(p => p.providerId === 'password');
+    if (isPasswordUser && !user.emailVerified) {
+      setIsDataLoading(false);
       return;
     }
 
@@ -108,8 +118,23 @@ export default function App() {
       handleFirestoreError(error, OperationType.LIST, `users/${user.uid}/records`);
     });
 
-    return () => unsubscribeRecords();
-  }, [user]);
+    // 3. Sync Daily Memo
+    const memoRef = doc(db, 'users', user.uid, 'memos', today);
+    const unsubscribeMemo = onSnapshot(memoRef, (snapshot) => {
+      if (snapshot.exists()) {
+        setMemo(snapshot.data().text);
+      } else {
+        setMemo(null);
+      }
+    }, (error) => {
+      handleFirestoreError(error, OperationType.GET, `users/${user.uid}/memos/${today}`);
+    });
+
+    return () => {
+      unsubscribeRecords();
+      unsubscribeMemo();
+    };
+  }, [user, today]);
 
   // Sync label selection when labels change
   useEffect(() => {
@@ -167,27 +192,30 @@ export default function App() {
     if (!user || !date || !label || count <= 0) return;
     const now = new Date().toISOString();
 
-    const recordsRef = collection(db, 'users', user.uid, 'records');
-    
     try {
+      // Find matching record by date and label
+      // First check local state for potential matches (to handle legacy IDs if they exist)
       const existing = records.find(r => r.date === date && r.label === label);
       
+      let docRef;
       if (existing) {
-        const docRef = doc(db, 'users', user.uid, 'records', existing.id);
-        await updateDoc(docRef, {
-          count: existing.count + count,
-          hours: Number((existing.hours + hours).toFixed(1)),
-          registeredAt: now
-        });
+        // Use existing ID if found
+        docRef = doc(db, 'users', user.uid, 'records', existing.id);
       } else {
-        await addDoc(recordsRef, {
-          date,
-          label,
-          count,
-          hours,
-          registeredAt: now
-        });
+        // Use deterministic ID to prevent duplicates during race conditions
+        const safeLabel = label.replace(/\//g, '_');
+        const deterministicId = `rec_${date}_${safeLabel}`;
+        docRef = doc(db, 'users', user.uid, 'records', deterministicId);
       }
+
+      // Use setDoc with merge and increment for bulletproof aggregation
+      await setDoc(docRef, {
+        date,
+        label,
+        count: increment(count),
+        hours: increment(hours),
+        registeredAt: now
+      }, { merge: true });
 
       setShowSuccess(true);
       setTimeout(() => setShowSuccess(false), 2000);
@@ -280,6 +308,29 @@ export default function App() {
     signOut(auth);
   };
 
+  const handleSaveMemo = async (text) => {
+    if (!user) return;
+    try {
+      const memoRef = doc(db, 'users', user.uid, 'memos', today);
+      await setDoc(memoRef, {
+        text,
+        updatedAt: serverTimestamp()
+      });
+    } catch (error) {
+      handleFirestoreError(error, OperationType.WRITE, `users/${user.uid}/memos/${today}`);
+    }
+  };
+
+  const handleDeleteMemo = async () => {
+    if (!user) return;
+    try {
+      const memoRef = doc(db, 'users', user.uid, 'memos', today);
+      await deleteDoc(memoRef);
+    } catch (error) {
+      handleFirestoreError(error, OperationType.DELETE, `users/${user.uid}/memos/${today}`);
+    }
+  };
+
   if (isAuthLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-slate-50">
@@ -288,8 +339,8 @@ export default function App() {
     );
   }
 
-  if (!user) {
-    return <AuthModal />;
+  if (!user || (!user.emailVerified && user.providerData.some(p => p.providerId === 'password'))) {
+    return <AuthModal unverifiedUser={user} />;
   }
 
   return (
@@ -325,6 +376,11 @@ export default function App() {
         <SummaryCard 
           date={today}
           {...stats}
+        />
+        <DailyMemo 
+          memo={memo}
+          onSave={handleSaveMemo}
+          onDelete={handleDeleteMemo}
         />
       </header>
 

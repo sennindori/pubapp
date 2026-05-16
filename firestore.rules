@@ -7,7 +7,7 @@ service cloud.firestore {
     }
 
     // 1. Primitive Helpers
-    function isSignedIn() { return request.auth != null; }
+    function isSignedIn() { return request.auth != null && request.auth.token.email_verified == true; }
     function isOwner(userId) { return isSignedIn() && request.auth.uid == userId; }
     function isValidId(id) { return id is string && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$'); }
     function incoming() { return request.resource.data; }
@@ -29,7 +29,14 @@ service cloud.firestore {
         && data.label is string && data.label.size() <= 100
         && data.count is int && data.count >= 0 && data.count <= 1000000
         && data.hours is number && data.hours >= 0 && data.hours <= 24
-        && data.registeredAt is string; // Using ISO string from client for consistency with existing logic, or use timestamp
+        && data.registeredAt is string;
+    }
+
+    function isValidMemo(data) {
+      return data.keys().hasAll(['text', 'updatedAt'])
+        && data.keys().size() == 2
+        && data.text is string && data.text.size() <= 2000
+        && (data.updatedAt == request.time || data.updatedAt is string);
     }
 
     // 3. Match Blocks
@@ -44,9 +51,13 @@ service cloud.firestore {
         allow get: if isOwner(userId);
         allow create: if isOwner(userId) && isValidRecord(incoming());
         allow update: if isOwner(userId) && isValidRecord(incoming())
-          && (
-            incoming().diff(existing()).affectedKeys().hasOnly(['count', 'hours', 'date'])
-          );
+          && incoming().diff(existing()).affectedKeys().hasOnly(['count', 'hours', 'date', 'registeredAt', 'label']);
+        allow delete: if isOwner(userId);
+      }
+
+      match /memos/{memoId} {
+        allow get: if isOwner(userId);
+        allow create, update: if isOwner(userId) && isValidMemo(incoming());
         allow delete: if isOwner(userId);
       }
     }

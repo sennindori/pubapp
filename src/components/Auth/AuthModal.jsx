@@ -1,15 +1,35 @@
 import React, { useState } from 'react';
 import { auth } from '../../lib/firebase';
-import { signInWithEmailAndPassword, createUserWithEmailAndPassword } from 'firebase/auth';
-import { Mail, Lock, UserPlus, LogIn, TrendingUp } from 'lucide-react';
+import { signInWithEmailAndPassword, createUserWithEmailAndPassword, sendEmailVerification, signOut } from 'firebase/auth';
+import { Mail, Lock, UserPlus, LogIn, TrendingUp, ShieldAlert, RotateCw, LogOut } from 'lucide-react';
 import { motion } from 'motion/react';
 
-export function AuthModal() {
+export function AuthModal({ unverifiedUser = null }) {
   const [isLogin, setIsLogin] = useState(true);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [verificationSent, setVerificationSent] = useState(false);
+
+  const handleSendVerification = async () => {
+    if (!unverifiedUser) return;
+    setLoading(true);
+    setError('');
+    try {
+      await sendEmailVerification(unverifiedUser);
+      setVerificationSent(true);
+    } catch (err) {
+      console.error('Verification Error:', err);
+      setError('認証メールの送信に失敗しました。時間をおいて再度お試しください。');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleLogout = async () => {
+    await signOut(auth);
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -19,7 +39,10 @@ export function AuthModal() {
       if (isLogin) {
         await signInWithEmailAndPassword(auth, email, password);
       } else {
-        await createUserWithEmailAndPassword(auth, email, password);
+        const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+        // 新規登録時に即座に確認メールを送信
+        await sendEmailVerification(userCredential.user);
+        setVerificationSent(true);
       }
     } catch (err) {
       console.error('Auth Error:', err);
@@ -40,6 +63,67 @@ export function AuthModal() {
       setLoading(false);
     }
   };
+
+  if (unverifiedUser) {
+    return (
+      <div className="fixed inset-0 z-50 flex items-center justify-center p-6 sm:p-0">
+        <div className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm" />
+        <motion.div
+          initial={{ opacity: 0, scale: 0.9, y: 20 }}
+          animate={{ opacity: 1, scale: 1, y: 0 }}
+          className="relative bg-white w-full max-w-md rounded-[32px] shadow-2xl overflow-hidden border border-slate-200"
+        >
+          <div className="p-8 md:p-10 text-center">
+            <div className="w-16 h-16 bg-red-50 rounded-2xl flex items-center justify-center mb-6 mx-auto">
+              <ShieldAlert className="w-9 h-9 text-red-500" />
+            </div>
+            <h2 className="text-2xl font-black text-slate-800 tracking-tight mb-2">メール認証が必要です</h2>
+            <p className="text-slate-500 text-sm font-bold leading-relaxed mb-8">
+              {unverifiedUser.email} 宛に認証メールを送信しています。<br />
+              メール内のリンクをクリックして、アカウントを有効にしてください。
+            </p>
+
+            <div className="space-y-4">
+              {verificationSent ? (
+                <div className="py-4 px-6 bg-green-50 text-green-600 rounded-2xl font-bold text-sm border border-green-100 italic">
+                  認証メールを再送信しました。
+                </div>
+              ) : (
+                <button
+                  onClick={handleSendVerification}
+                  disabled={loading}
+                  className="w-full py-4 bg-primary text-white font-black rounded-2xl shadow-xl shadow-primary/20 transition-all hover:brightness-110 active:scale-[0.98] flex items-center justify-center gap-2"
+                >
+                  {loading ? <RotateCw className="w-5 h-5 animate-spin" /> : '認証メールを再送信する'}
+                </button>
+              )}
+
+              <button
+                onClick={() => window.location.reload()}
+                className="w-full py-4 bg-slate-100 text-slate-600 font-bold rounded-2xl transition-all hover:bg-slate-200 active:scale-[0.98]"
+              >
+                認証が完了したのでページを更新する
+              </button>
+
+              <button
+                onClick={handleLogout}
+                className="w-full py-4 bg-white border-2 border-slate-100 text-slate-400 font-bold rounded-2xl transition-all hover:border-slate-200 hover:text-slate-600 flex items-center justify-center gap-2"
+              >
+                <LogOut className="w-4 h-4" />
+                別の本人情報でログインする
+              </button>
+            </div>
+
+            {error && (
+              <p className="mt-6 text-red-500 text-xs font-bold italic">
+                {error}
+              </p>
+            )}
+          </div>
+        </motion.div>
+      </div>
+    );
+  }
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-6 sm:p-0">
