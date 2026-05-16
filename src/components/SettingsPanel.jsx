@@ -67,11 +67,11 @@ export function SettingsPanel({ isOpen, setIsOpen, labels, updateLabel, user, on
             initial={{ opacity: 0, scale: 0.95, y: 20 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.95, y: 20 }}
-            className="bg-white w-full max-w-2xl overflow-hidden rounded-[32px] shadow-2xl relative z-10 border border-slate-200 flex flex-col md:flex-row h-auto min-h-[500px]"
+            className="bg-white w-full max-w-2xl rounded-[32px] shadow-2xl relative z-10 border border-slate-200 flex flex-col md:flex-row h-auto max-h-[92vh] md:min-h-[500px] overflow-hidden"
           >
             {/* Sidebar Navigation */}
-            <div className="w-full md:w-64 bg-slate-50 p-6 md:p-8 flex flex-col gap-2 border-b md:border-b-0 md:border-r border-slate-100">
-              <div className="flex items-center gap-3 mb-8 px-2">
+            <div className="w-full md:w-64 bg-slate-50 p-5 md:p-8 flex flex-col gap-2 border-b md:border-b-0 md:border-r border-slate-100 shrink-0">
+              <div className="flex items-center gap-3 mb-6 md:mb-8 px-2">
                 <div className="p-2 bg-primary rounded-xl">
                   <Settings2 className="w-5 h-5 text-white" />
                 </div>
@@ -114,8 +114,8 @@ export function SettingsPanel({ isOpen, setIsOpen, labels, updateLabel, user, on
             </div>
 
             {/* Content Area */}
-            <div className="flex-1 p-8 md:p-10 flex flex-col">
-              <div className="flex items-center justify-between mb-8">
+            <div className="flex-1 p-6 md:p-10 flex flex-col overflow-y-auto">
+              <div className="flex items-center justify-between mb-6 md:mb-8">
                 <h4 className="text-xl font-bold text-slate-800 capitalize">
                   {activeTab === 'categories' ? 'カテゴリ名称の編集' : 'アカウント設定'}
                 </h4>
