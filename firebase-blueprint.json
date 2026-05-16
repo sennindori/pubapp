@@ -10,6 +10,11 @@
           "description": "Custom category labels for the user",
           "items": { "type": "string" }
         },
+        "hoursGoal": {
+          "type": "number",
+          "description": "Daily goal for hours worked",
+          "default": 8
+        },
         "updatedAt": {
           "type": "string",
           "format": "date-time",

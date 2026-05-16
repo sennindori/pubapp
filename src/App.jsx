@@ -37,6 +37,7 @@ export default function App() {
 
   // --- App State ---
   const [labels, setLabels] = useState(DEFAULT_LABELS);
+  const [hoursGoal, setHoursGoal] = useState(8);
   const [records, setRecords] = useState([]);
   const [memo, setMemo] = useState(null);
   const [isDataLoading, setIsDataLoading] = useState(false);
@@ -87,24 +88,28 @@ export default function App() {
 
     // 1. Fetch/Sync Labels (UserProfile)
     const userRef = doc(db, 'users', user.uid);
-    const fetchLabels = async () => {
+    const fetchUserProfile = async () => {
       try {
         const snap = await getDoc(userRef);
         if (snap.exists()) {
-          setLabels(snap.data().labels);
+          const data = snap.data();
+          setLabels(data.labels || DEFAULT_LABELS);
+          setHoursGoal(data.hoursGoal || 8);
         } else {
           // Initialize profile with defaults
           await setDoc(userRef, {
             labels: DEFAULT_LABELS,
+            hoursGoal: 8,
             updatedAt: serverTimestamp()
           });
           setLabels(DEFAULT_LABELS);
+          setHoursGoal(8);
         }
       } catch (error) {
         handleFirestoreError(error, OperationType.GET, `users/${user.uid}`);
       }
     };
-    fetchLabels();
+    fetchUserProfile();
 
     // 2. Sync Records
     const recordsRef = collection(db, 'users', user.uid, 'records');
@@ -156,18 +161,19 @@ export default function App() {
       ? Math.max(...records.map(r => new Date(r.registeredAt).getTime()))
       : null;
     const chartData = [
-      { name: 'Completed', value: Math.min(totalHours, 8) },
-      { name: 'Remaining', value: Math.max(0, 8 - totalHours) }
+      { name: 'Completed', value: Math.min(totalHours, hoursGoal) },
+      { name: 'Remaining', value: Math.max(0, hoursGoal - totalHours) }
     ];
     return { 
       totalHours, 
       totalCount, 
       chartData, 
-      isOverLimit: totalHours > 8,
+      isOverLimit: totalHours > hoursGoal,
+      hoursGoal,
       lastRegisteredAt: lastReg,
       hasTodayRecords: todayRecords.length > 0
     };
-  }, [records, today]);
+  }, [records, today, hoursGoal]);
 
   // Suggested hours logic
   useEffect(() => {
@@ -331,6 +337,20 @@ export default function App() {
     }
   };
 
+  const updateHoursGoal = async (newGoal) => {
+    if (!user) return;
+    const userRef = doc(db, 'users', user.uid);
+    try {
+      await updateDoc(userRef, {
+        hoursGoal: newGoal,
+        updatedAt: serverTimestamp()
+      });
+      setHoursGoal(newGoal);
+    } catch (error) {
+      handleFirestoreError(error, OperationType.UPDATE, `users/${user.uid}`);
+    }
+  };
+
   if (isAuthLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-slate-50">
@@ -375,6 +395,7 @@ export default function App() {
         
         <SummaryCard 
           date={today}
+          onUpdateGoal={updateHoursGoal}
           {...stats}
         />
         <DailyMemo 

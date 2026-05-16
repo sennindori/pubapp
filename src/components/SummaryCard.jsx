@@ -1,7 +1,8 @@
-import React from 'react';
-import { Calendar, Clock, Box } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { Calendar, Clock, Box, Check, X } from 'lucide-react';
 import { PieChart, Pie, Cell, ResponsiveContainer } from 'recharts';
 import { getYearDisplay, getMonthDayDisplay } from '../lib/utils';
+import { motion, AnimatePresence } from 'motion/react';
 
 export function SummaryCard({ 
   date, 
@@ -9,8 +10,25 @@ export function SummaryCard({
   totalCount, 
   chartData, 
   isOverLimit, 
+  hoursGoal,
+  onUpdateGoal,
   lastRegisteredAt 
 }) {
+  const [isEditingGoal, setIsEditingGoal] = useState(false);
+  const [editValue, setEditValue] = useState(hoursGoal.toString());
+
+  useEffect(() => {
+    setEditValue(hoursGoal.toString());
+  }, [hoursGoal]);
+
+  const handleSave = () => {
+    const val = parseFloat(editValue);
+    if (!isNaN(val) && val >= 0 && val <= 24) {
+      onUpdateGoal(val);
+      setIsEditingGoal(false);
+    }
+  };
+
   return (
     <div className="bg-surface p-7 rounded-[32px] border border-border shadow-md shadow-slate-100 flex flex-col md:flex-row md:items-center gap-8 min-w-[280px]">
       <div className="flex-1 space-y-5">
@@ -55,7 +73,10 @@ export function SummaryCard({
       </div>
 
       {/* Chart Section */}
-      <div className="w-32 h-32 relative flex-shrink-0">
+      <div 
+        className="w-32 h-32 relative flex-shrink-0 cursor-pointer group"
+        onClick={() => !isEditingGoal && setIsEditingGoal(true)}
+      >
         <ResponsiveContainer width="100%" height="100%">
           <PieChart>
             <Pie
@@ -73,13 +94,63 @@ export function SummaryCard({
             </Pie>
           </PieChart>
         </ResponsiveContainer>
-        <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
-          <span className={`text-[10px] font-bold tracking-widest uppercase ${isOverLimit ? 'text-accent' : 'text-slate-400'}`}>
-            {isOverLimit ? 'Over' : 'Goal'}
-          </span>
-          <span className={`text-sm font-black ${isOverLimit ? 'text-accent' : 'text-primary'}`}>
-            8h
-          </span>
+        
+        <div className="absolute inset-0 flex flex-col items-center justify-center">
+          <AnimatePresence mode="wait">
+            {isEditingGoal ? (
+              <motion.div 
+                key="edit"
+                initial={{ opacity: 0, scale: 0.8 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.8 }}
+                className="flex flex-col items-center bg-white/90 backdrop-blur-sm inset-0 absolute rounded-full justify-center z-10"
+                onClick={(e) => e.stopPropagation()}
+              >
+                <input
+                  type="number"
+                  step="0.5"
+                  min="0"
+                  max="24"
+                  value={editValue}
+                  onChange={(e) => setEditValue(e.target.value)}
+                  className="w-12 text-center text-sm font-black text-primary border-b-2 border-primary outline-none bg-transparent"
+                  autoFocus
+                  onBlur={handleSave}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') handleSave();
+                    if (e.key === 'Escape') setIsEditingGoal(false);
+                  }}
+                />
+                <div className="flex gap-1 mt-1">
+                  <button onClick={handleSave} className="p-1 text-primary hover:bg-slate-100 rounded">
+                    <Check className="w-3 h-3" />
+                  </button>
+                  <button onClick={() => setIsEditingGoal(false)} className="p-1 text-slate-400 hover:bg-slate-100 rounded">
+                    <X className="w-3 h-3" />
+                  </button>
+                </div>
+              </motion.div>
+            ) : (
+              <motion.div 
+                key="display"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                className="flex flex-col items-center pointer-events-none group-hover:scale-105 transition-transform"
+              >
+                <span className={`text-[10px] font-bold tracking-widest uppercase ${isOverLimit ? 'text-accent' : 'text-slate-400'}`}>
+                  {isOverLimit ? 'Over' : 'Goal'}
+                </span>
+                <div className="relative">
+                   <span className={`text-sm font-black ${isOverLimit ? 'text-accent' : 'text-primary'}`}>
+                    {hoursGoal}h
+                  </span>
+                  <div className="absolute -right-4 top-0 opacity-0 group-hover:opacity-100 transition-opacity">
+                    <div className="w-1 h-1 bg-primary rounded-full animate-pulse" />
+                  </div>
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
         </div>
       </div>
     </div>
