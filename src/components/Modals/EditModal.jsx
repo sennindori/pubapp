@@ -6,11 +6,14 @@ export function EditModal({ record, onSave, onCancel }) {
   const [countInput, setCountInput] = useState(record.count.toString());
   const [hours, setHours] = useState(record.hours);
   const [date, setDate] = useState(record.date);
+  const [subLabel, setSubLabel] = useState(record.subLabel || '');
+
+  const SUB_LABELS = ['BJ', 'NBJ', 'ルース', '時計'];
 
   const handleSave = () => {
     const newCount = parseInt(countInput) || 0;
     if (newCount <= 0) return;
-    onSave(newCount, hours, date);
+    onSave(newCount, hours, date, subLabel);
   };
 
   return (
@@ -28,6 +31,28 @@ export function EditModal({ record, onSave, onCancel }) {
         </div>
 
         <div className="space-y-6">
+          <div>
+            <label className="flex items-center gap-2 text-[11px] font-bold text-slate-400 uppercase tracking-widest mb-2">
+              <Calendar className="w-3.5 h-3.5 text-primary" />
+              サブカテゴリ
+            </label>
+            <div className="grid grid-cols-2 gap-2">
+              {SUB_LABELS.map(sl => (
+                <button
+                  key={sl}
+                  onClick={() => setSubLabel(subLabel === sl ? '' : sl)}
+                  className={`py-2 px-3 rounded-xl text-[11px] font-black border-2 transition-all ${
+                    subLabel === sl 
+                      ? 'bg-primary border-primary text-white shadow-md' 
+                      : 'bg-white border-slate-100 text-slate-400 hover:border-slate-200'
+                  }`}
+                >
+                  {sl}
+                </button>
+              ))}
+            </div>
+          </div>
+
           <div>
             <label className="flex items-center gap-2 text-[11px] font-bold text-slate-400 uppercase tracking-widest mb-2">
               <Calendar className="w-3.5 h-3.5 text-primary" />

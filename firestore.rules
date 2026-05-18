@@ -26,9 +26,10 @@ service cloud.firestore {
 
     function isValidRecord(data) {
       return data.keys().hasAll(['date', 'label', 'count', 'hours', 'registeredAt'])
-        && data.keys().size() == 5
+        && data.keys().size() >= 5 && data.keys().size() <= 6
         && data.date is string && data.date.size() == 10
         && data.label is string && data.label.size() <= 100
+        && (data.get('subLabel', '') is string && data.get('subLabel', '').size() <= 100)
         && data.count is int && data.count >= 0 && data.count <= 1000000
         && data.hours is number && data.hours >= 0 && data.hours <= 24
         && data.registeredAt is string;
@@ -53,7 +54,7 @@ service cloud.firestore {
         allow get: if isOwner(userId);
         allow create: if isOwner(userId) && isValidRecord(incoming());
         allow update: if isOwner(userId) && isValidRecord(incoming())
-          && incoming().diff(existing()).affectedKeys().hasOnly(['count', 'hours', 'date', 'registeredAt', 'label']);
+          && incoming().diff(existing()).affectedKeys().hasOnly(['count', 'hours', 'date', 'registeredAt', 'label', 'subLabel']);
         allow delete: if isOwner(userId);
       }
 

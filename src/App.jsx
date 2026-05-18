@@ -164,10 +164,20 @@ export default function App() {
       { name: 'Completed', value: Math.min(totalHours, hoursGoal) },
       { name: 'Remaining', value: Math.max(0, hoursGoal - totalHours) }
     ];
+
+    const subStats = todayRecords.reduce((acc, r) => {
+      const sl = r.subLabel || '未設定';
+      if (!acc[sl]) acc[sl] = { hours: 0, count: 0 };
+      acc[sl].hours += r.hours;
+      acc[sl].count += r.count;
+      return acc;
+    }, {});
+
     return { 
       totalHours, 
       totalCount, 
       chartData, 
+      subStats,
       isOverLimit: totalHours > hoursGoal,
       hoursGoal,
       lastRegisteredAt: lastReg,
@@ -403,6 +413,20 @@ export default function App() {
           onSave={handleSaveMemo}
           onDelete={handleDeleteMemo}
         />
+
+        {Object.keys(stats.subStats).filter(k => k !== '未設定').length > 0 && (
+          <div className="mt-8 pt-8 border-t border-slate-100 grid grid-cols-2 sm:grid-cols-4 gap-3">
+            {Object.entries(stats.subStats).filter(([k]) => k !== '未設定').map(([sLabel, data]) => (
+              <div key={sLabel} className="bg-slate-50/50 p-4 rounded-3xl border border-slate-100 flex flex-col items-center">
+                <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1.5">{sLabel}</span>
+                <div className="flex flex-col items-center">
+                  <span className="text-xl font-black text-slate-700 leading-none">{data.hours.toFixed(1)}<small className="text-[10px] opacity-40 ml-0.5">h</small></span>
+                  <span className="text-[10px] font-bold text-slate-400 mt-1">{data.count}点</span>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
       </header>
 
       {isDataLoading && records.length === 0 ? (
@@ -486,13 +510,14 @@ export default function App() {
         <EditModal 
           record={editingRecord}
           onCancel={() => setEditingRecord(null)}
-          onSave={async (c, h, d) => {
+          onSave={async (c, h, d, sl) => {
             try {
               const docRef = doc(db, 'users', user.uid, 'records', editingRecord.id);
               await updateDoc(docRef, {
                 count: c,
                 hours: h,
-                date: d
+                date: d,
+                subLabel: sl
               });
               setEditingRecord(null);
             } catch (error) {

@@ -12,10 +12,15 @@ export function RecordCard({ record, onEdit, onShowQR, onDelete }) {
       
       <div className="flex flex-col gap-4">
         {/* Row 1: Label */}
-        <div>
+        <div className="flex items-center justify-between">
           <span className="text-lg font-black text-primary tracking-tight">
             {record.label || '(無題)'}
           </span>
+          {record.subLabel && (
+            <span className="px-2 py-0.5 bg-primary/10 text-primary text-[10px] font-black rounded-lg uppercase tracking-wider">
+              {record.subLabel}
+            </span>
+          )}
         </div>
 
         {/* Row 2: Date, Time */}

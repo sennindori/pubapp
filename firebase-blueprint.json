@@ -30,6 +30,7 @@
       "properties": {
         "date": { "type": "string", "description": "Date of the activity (YYYY-MM-DD)" },
         "label": { "type": "string", "description": "Category label" },
+        "subLabel": { "type": "string", "description": "Optional sub-category label (BJ, NBJ, etc.)" },
         "count": { "type": "integer", "description": "Activity count" },
         "hours": { "type": "number", "description": "Hours spent" },
         "registeredAt": { "type": "string", "format": "date-time", "description": "Registration timestamp" }
