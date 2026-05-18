@@ -1,8 +1,47 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, memo } from 'react';
 import { Settings2, X, Tag, ChevronRight, ChevronLeft, User, Key, LogOut, CheckCircle2, AlertCircle } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { updatePassword, reauthenticateWithCredential, EmailAuthProvider } from 'firebase/auth';
 import { auth } from '../lib/firebase';
+
+const CategoryItem = memo(({ index, initialValue, onUpdate }) => {
+  const [value, setValue] = useState(initialValue);
+
+  // Sync with prop if it changes from outside
+  useEffect(() => {
+    setValue(initialValue);
+  }, [initialValue]);
+
+  const handleBlur = () => {
+    if (value !== initialValue) {
+      onUpdate(index, value);
+    }
+  };
+
+  const handleKeyDown = (e) => {
+    if (e.key === 'Enter') {
+      e.currentTarget.blur();
+    }
+  };
+
+  return (
+    <div className="relative group">
+      <input
+        type="text"
+        value={value}
+        onChange={(e) => setValue(e.target.value)}
+        onBlur={handleBlur}
+        onKeyDown={handleKeyDown}
+        className="w-full pl-11 pr-4 py-4 bg-slate-50 border border-slate-200 rounded-2xl focus:ring-4 focus:ring-primary/10 focus:border-primary focus:bg-white outline-none transition-all text-sm font-bold placeholder:text-slate-300"
+        placeholder={`カテゴリ ${index + 1}...`}
+      />
+      <Tag className="w-4 h-4 text-slate-300 group-focus-within:text-primary absolute left-4 top-1/2 -translate-y-1/2 transition-colors" />
+      <div className="absolute right-4 top-1/2 -translate-y-1/2 text-[10px] font-mono font-bold text-slate-200 group-focus-within:text-slate-300">
+        #{index + 1}
+      </div>
+    </div>
+  );
+});
 
 export function SettingsPanel({ isOpen, setIsOpen, labels, updateLabel, user, onLogout }) {
   const [activeTab, setActiveTab] = useState('categories'); // 'categories' | 'account'
@@ -147,19 +186,12 @@ export function SettingsPanel({ isOpen, setIsOpen, labels, updateLabel, user, on
                           {currentItems.map((lbl, i) => {
                             const idx = page * itemsPerPage + i;
                             return (
-                              <div key={idx} className="relative group">
-                                <input
-                                  type="text"
-                                  value={lbl}
-                                  onChange={(e) => updateLabel(idx, e.target.value)}
-                                  className="w-full pl-11 pr-4 py-4 bg-slate-50 border border-slate-200 rounded-2xl focus:ring-4 focus:ring-primary/10 focus:border-primary focus:bg-white outline-none transition-all text-sm font-bold placeholder:text-slate-300"
-                                  placeholder={`カテゴリ ${idx + 1}...`}
-                                />
-                                <Tag className="w-4 h-4 text-slate-300 group-focus-within:text-primary absolute left-4 top-1/2 -translate-y-1/2 transition-colors" />
-                                <div className="absolute right-4 top-1/2 -translate-y-1/2 text-[10px] font-mono font-bold text-slate-200 group-focus-within:text-slate-300">
-                                  #{idx + 1}
-                                </div>
-                              </div>
+                              <CategoryItem 
+                                key={idx}
+                                index={idx}
+                                initialValue={lbl}
+                                onUpdate={updateLabel}
+                              />
                             );
                           })}
                         </motion.div>
