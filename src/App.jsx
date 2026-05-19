@@ -44,6 +44,7 @@ export default function App() {
 
   const [date, setDate] = useState(getLocalDate());
   const [label, setLabel] = useState(labels[0]);
+  const [subLabel, setSubLabel] = useState('');
   const [countInput, setCountInput] = useState('0');
   const [prevCalcValue, setPrevCalcValue] = useState(null);
   const [calcOperator, setCalcOperator] = useState(null);
@@ -209,25 +210,23 @@ export default function App() {
     const now = new Date().toISOString();
 
     try {
-      // Find matching record by date and label
-      // First check local state for potential matches (to handle legacy IDs if they exist)
-      const existing = records.find(r => r.date === date && r.label === label);
+      // Find matching record by date, label, AND subLabel
+      const existing = records.find(r => r.date === date && r.label === label && (r.subLabel || '') === (subLabel || ''));
       
       let docRef;
       if (existing) {
-        // Use existing ID if found
         docRef = doc(db, 'users', user.uid, 'records', existing.id);
       } else {
-        // Use deterministic ID to prevent duplicates during race conditions
         const safeLabel = label.replace(/\//g, '_');
-        const deterministicId = `rec_${date}_${safeLabel}`;
+        const safeSubLabel = (subLabel || 'none').replace(/\//g, '_');
+        const deterministicId = `rec_${date}_${safeLabel}_${safeSubLabel}`;
         docRef = doc(db, 'users', user.uid, 'records', deterministicId);
       }
 
-      // Use setDoc with merge and increment for bulletproof aggregation
       await setDoc(docRef, {
         date,
         label,
+        subLabel: subLabel || '',
         count: increment(count),
         hours: increment(hours),
         registeredAt: now
@@ -236,6 +235,7 @@ export default function App() {
       setShowSuccess(true);
       setTimeout(() => setShowSuccess(false), 2000);
       setCountInput('0');
+      setSubLabel('');
       setPrevCalcValue(null);
       setCalcOperator(null);
       setWaitingForOperand(false);
@@ -443,6 +443,8 @@ export default function App() {
               label={label}
               setLabel={setLabel}
               labels={labels}
+              subLabel={subLabel}
+              setSubLabel={setSubLabel}
               countInput={countInput}
               onKeypadPress={handleKeypadPress}
               hours={hours}

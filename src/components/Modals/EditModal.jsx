@@ -8,7 +8,7 @@ export function EditModal({ record, onSave, onCancel }) {
   const [date, setDate] = useState(record.date);
   const [subLabel, setSubLabel] = useState(record.subLabel || '');
 
-  const SUB_LABELS = ['BJ', 'NBJ', 'ルース', '時計'];
+  const SUB_LABELS = ['-', 'NBJ', 'BJ', 'ルース', '時計', 'バッグ'];
 
   const handleSave = () => {
     const newCount = parseInt(countInput) || 0;
@@ -36,13 +36,13 @@ export function EditModal({ record, onSave, onCancel }) {
               <Calendar className="w-3.5 h-3.5 text-primary" />
               サブカテゴリ
             </label>
-            <div className="grid grid-cols-2 gap-2">
+            <div className="grid grid-cols-3 gap-2">
               {SUB_LABELS.map(sl => (
                 <button
                   key={sl}
-                  onClick={() => setSubLabel(subLabel === sl ? '' : sl)}
-                  className={`py-2 px-3 rounded-xl text-[11px] font-black border-2 transition-all ${
-                    subLabel === sl 
+                  onClick={() => setSubLabel(sl === '-' ? '' : sl)}
+                  className={`py-2 px-1 rounded-xl text-[10px] font-black border-2 transition-all ${
+                    (sl === '-' && subLabel === '') || subLabel === sl
                       ? 'bg-primary border-primary text-white shadow-md' 
                       : 'bg-white border-slate-100 text-slate-400 hover:border-slate-200'
                   }`}

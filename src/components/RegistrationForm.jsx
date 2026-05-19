@@ -3,12 +3,14 @@ import { Calendar, Tag, Hash, Clock, Plus, CheckCircle2, Delete, Play, Pause, Do
 import { KeypadButton } from './KeypadButton';
 
 export function RegistrationForm({
-  date, setDate, label, setLabel, labels, countInput, onKeypadPress, hours, setHours, setIsManualHours, onAdd, showSuccess, disabled
+  date, setDate, label, setLabel, labels, subLabel, setSubLabel, countInput, onKeypadPress, hours, setHours, setIsManualHours, onAdd, showSuccess, disabled
 }) {
   const [isRunning, setIsRunning] = useState(false);
   const [accumulatedMs, setAccumulatedMs] = useState(0);
   const [startTime, setStartTime] = useState(null);
   const [elapsed, setElapsed] = useState(0);
+
+  const SUB_LABELS = ['-', 'NBJ', 'BJ', 'ルース', '時計', 'バッグ'];
 
   // Load timer state on mount
   useEffect(() => {
@@ -138,6 +140,29 @@ export function RegistrationForm({
                 title={l || `未設定 ${idx + 1}`}
               >
                 {l || <span className="opacity-30">---</span>}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        <div>
+          <label className="flex items-center gap-2 text-sm font-bold text-base-text mb-3">
+            <Tag className="w-4 h-4 text-primary opacity-60" />
+            サブカテゴリ選択
+          </label>
+          <div className="grid grid-cols-3 sm:grid-cols-6 gap-2">
+            {SUB_LABELS.map(sl => (
+              <button
+                key={sl}
+                type="button"
+                onClick={() => setSubLabel(sl === '-' ? '' : sl)}
+                className={`px-1 py-3 text-[11px] font-black rounded-xl border-2 transition-all ${
+                  (sl === '-' && subLabel === '') || subLabel === sl
+                    ? 'bg-primary border-primary text-white shadow-md' 
+                    : 'bg-white border-border text-slate-400 hover:border-slate-200 active:scale-95'
+                }`}
+              >
+                {sl}
               </button>
             ))}
           </div>
